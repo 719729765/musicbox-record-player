@@ -2,7 +2,8 @@
 
 > 🎵 WordPress 插件：单曲 / 歌单导入，JSON接口，缓存，随机或顺序播放
 
-![MusicBox](https://raw.githubusercontent.com/yourusername/musicbox/main/screenshot.png)
+<img width="829" height="818" alt="image" src="https://github.com/user-attachments/assets/220665e2-a63a-4450-8003-354069148f02" />
+
 
 ---
 
