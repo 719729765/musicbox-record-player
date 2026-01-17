@@ -2,7 +2,10 @@
 
 > 🎵 WordPress 插件：单曲 / 歌单导入，JSON接口，缓存，随机或顺序播放
 
-<img width="829" height="818" alt="image" src="https://github.com/user-attachments/assets/220665e2-a63a-4450-8003-354069148f02" />
+<img width="800" height="533" alt="image" src="https://github.com/user-attachments/assets/ab7feeaa-fd96-45b0-9bcb-afa6340acb9b" />
+
+
+
 
 ## 在线体验
 
@@ -18,6 +21,8 @@
 > 这不仅是播放器，也是一个小小互动乐趣，绝对比普通音量条萌多啦~  
 
 ---
+
+<img width="829" height="818" alt="image" src="https://github.com/user-attachments/assets/220665e2-a63a-4450-8003-354069148f02" />
 
 ## 开发者语
 
