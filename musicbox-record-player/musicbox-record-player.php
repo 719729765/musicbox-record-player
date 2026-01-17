@@ -4,6 +4,7 @@
  * Description: 单曲 / 歌单导入，JSON接口，缓存，防失败，随机或顺序播放
  * Version: 3.2.0
  * Author: 码铃薯
+ * Author URI: https://yourwebsite.com
  */
 
 if (!defined('ABSPATH')) exit;
@@ -275,8 +276,8 @@ add_action('wp_footer', function () {
     const mode  = "<?php echo esc_js($mode); ?>";
     if (!songs.length) return;
 
-    let index = 0;
     let hasUserInteracted = false;
+    let index = (mode === 'random') ? Math.floor(Math.random() * songs.length) : 0;
 
     const audio = document.getElementById('musicbox-audio');
     const record = document.getElementById('record');
@@ -492,18 +493,6 @@ add_action('wp_footer', function () {
 
         setTimeout(() => note.remove(), 500);
     }
-})();
-</script>
-
-<!--随机歌曲+封面（仅展示，不播放）-->
-<script>
-(() => {
-    const songs = <?php echo json_encode(array_values($songs)); ?> || [];
-    if (!songs.length) return;
-
-    const song = songs[Math.floor(Math.random() * songs.length)];
-    const coverDiv = document.querySelector('.record-cover');
-    if (coverDiv) coverDiv.style.backgroundImage = `url('${song.cover || ''}')`;
 })();
 </script>
 
