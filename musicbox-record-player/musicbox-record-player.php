@@ -2,7 +2,7 @@
 /**
  * Plugin Name: MusicBox 唱片播放器
  * Description: 单曲 / 歌单导入，JSON接口，缓存，防失败，随机或顺序播放，修复加载速度
- * Version: 3.3.2
+ * Version: 3.3.3
  * Author: 码铃薯
  * Author URI: https://www.tudoucode.cn
 
@@ -69,8 +69,14 @@ function musicbox_settings_page() {
 
 <input type="hidden" name="musicbox_song_list" id="musicbox_song_data"
        value="<?php echo esc_attr($songs); ?>">
-
 <?php submit_button(); ?>
+
+<button type="button" class="button" id="check-songs-valid">🎯 一键检测有效性</button>
+<button type="button" class="button button-secondary" id="remove-invalid-songs">
+🧹 删除所有失效歌曲
+</button>
+
+
 </form>
 </div>
 
@@ -79,6 +85,8 @@ function musicbox_settings_page() {
 .musicbox-song-row input{width:150px}
 .musicbox-preview{width:36px;height:36px;border-radius:50%;background:#111;overflow:hidden}
 .musicbox-preview img{width:100%;height:100%;object-fit:cover}
+.song-valid { font-size:12px; color:#0f0; margin-left:6px; }
+.song-invalid { font-size:12px; color:#f00; margin-left:6px; }
 </style>
 
 <script>
@@ -92,75 +100,226 @@ let songs=[];
 try{songs=JSON.parse(hidden.value||'[]');if(!Array.isArray(songs))songs=[];}catch(e){songs=[];}
 
 function sync(){hidden.value=JSON.stringify(songs);}
+
 function render(){
-list.innerHTML='';
-songs.forEach((s,i)=>{
-let row=document.createElement('div');
-row.className='musicbox-song-row';
-row.innerHTML=`
-<input placeholder="网易云ID" value="${s.netease_id||''}">
-<input placeholder="MP3 URL" value="${s.url||''}">
-<input placeholder="封面 URL" value="${s.cover||''}">
-<button class="button auto">自动补全</button>
-<div class="musicbox-preview">${s.cover?`<img src="${s.cover}">`:''}</div>
-<button class="button del">删除</button>
-`;
-let inputs=row.querySelectorAll('input');
-let preview=row.querySelector('.musicbox-preview');
+    list.innerHTML='';
+    songs.forEach((s,i)=>{
+        let row=document.createElement('div');
+        row.className='musicbox-song-row';
+        row.innerHTML=`
+        <input placeholder="网易云ID" value="${s.netease_id||''}">
+        <input placeholder="MP3 URL" value="${s.url||''}">
+        <input placeholder="封面 URL" value="${s.cover||''}">
+        <button class="button auto">自动补全</button>
+        <div class="musicbox-preview">${s.cover?`<img src="${s.cover}">`:''}</div>
+        <button class="button del">删除</button>
+        `;
 
-inputs[0].oninput=e=>{s.netease_id=e.target.value;sync();}
-inputs[1].oninput=e=>{s.url=e.target.value;sync();}
-inputs[2].oninput=e=>{s.cover=e.target.value;preview.innerHTML=s.cover?`<img src="${s.cover}">`:'';sync();}
+        let inputs=row.querySelectorAll('input');
+        let preview=row.querySelector('.musicbox-preview');
 
-row.querySelector('.auto').onclick=()=>{
-if(!s.netease_id)return alert('请输入网易云ID');
-fetch(ajaxurl,{
-method:'POST',
-headers:{'Content-Type':'application/x-www-form-urlencoded'},
-body:new URLSearchParams({
-action:'musicbox_fetch_single',
-id:s.netease_id,
-_ajax_nonce:musicboxNonce
-})
-})
-.then(r=>r.json()).then(d=>{
-if(!d||!d.url)return alert('获取失败');
-s.url=d.url;s.cover=d.cover;
-inputs[1].value=d.url;inputs[2].value=d.cover;
-preview.innerHTML=d.cover?`<img src="${d.cover}">`:'';
-sync();
-});
-};
+        inputs[0].oninput=e=>{s.netease_id=e.target.value;sync();}
+        inputs[1].oninput=e=>{s.url=e.target.value;sync();}
+        inputs[2].oninput=e=>{
+            s.cover=e.target.value;
+            preview.innerHTML=s.cover?`<img src="${s.cover}">`:'';
+            sync();
+        }
 
-row.querySelector('.del').onclick=()=>{songs.splice(i,1);sync();render();}
-list.appendChild(row);
-});
+        // 恢复检测状态
+        if (s._valid === true) {
+            const span = document.createElement('span');
+            span.textContent = '✅ 有效';
+            span.className = 'song-valid';
+            row.appendChild(span);
+        } else if (s._valid === false) {
+            const span = document.createElement('span');
+            span.textContent = '❌ 无效';
+            span.className = 'song-invalid';
+            row.appendChild(span);
+        }
+
+        row.querySelector('.auto').onclick=()=>{
+            if(!s.netease_id)return alert('请输入网易云ID');
+            fetch(ajaxurl,{
+                method:'POST',
+                headers:{'Content-Type':'application/x-www-form-urlencoded'},
+                body:new URLSearchParams({
+                    action:'musicbox_fetch_single',
+                    id:s.netease_id,
+                    _ajax_nonce:musicboxNonce
+                })
+            })
+            .then(r=>r.json()).then(d=>{
+                if(!d||!d.url)return alert('获取失败');
+                s.url=d.url;
+                s.cover=d.cover;
+                inputs[1].value=d.url;
+                inputs[2].value=d.cover;
+                preview.innerHTML=d.cover?`<img src="${d.cover}">`:'';
+                sync();
+            });
+        };
+
+        row.querySelector('.del').onclick=()=>{
+            songs.splice(i,1);
+            sync();
+            render();
+        };
+
+        list.appendChild(row);
+    });
 }
 
-document.getElementById('add-song').onclick=()=>{songs.push({});sync();render();}
+document.getElementById('add-song').onclick=()=>{
+    songs.push({});
+    sync();
+    render();
+};
 
-document.getElementById('import-playlist').onclick=()=>{
-let id=document.getElementById('playlist-id').value;
-if(!id)return alert('请输入歌单ID');
-fetch(ajaxurl,{
-method:'POST',
-headers:{'Content-Type':'application/x-www-form-urlencoded'},
-body:new URLSearchParams({
-action:'musicbox_fetch_playlist',
-id:id,
-_ajax_nonce:musicboxNonce
-})
-})
-.then(r=>r.json()).then(list2=>{
-if(!Array.isArray(list2))return alert('导入失败');
-songs=list2;sync();render();
-});
+// 增量导入歌单
+document.getElementById('import-playlist').onclick = () => {
+    let id = document.getElementById('playlist-id').value;
+    if (!id) return alert('请输入歌单ID');
+
+    fetch(ajaxurl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+            action: 'musicbox_fetch_playlist',
+            id: id,
+            _ajax_nonce: musicboxNonce
+        })
+    })
+    .then(r => r.json())
+    .then(list2 => {
+        if (!Array.isArray(list2)) return alert('导入失败');
+
+        let added = 0;
+        list2.forEach(n => {
+            if (!songs.find(s => s.netease_id == n.netease_id)) {
+                songs.push(n);
+                added++;
+            }
+        });
+
+        sync();
+        render();
+        alert(`增量导入完成，新增 ${added} 首歌曲`);
+    });
+};
+
+// 一键检测有效性（修复版：使用同一个 songs）
+document.getElementById('check-songs-valid').onclick = async () => {
+    if(!songs.length) return alert('歌单为空，无法检测！');
+
+    const rows = document.querySelectorAll('.musicbox-song-row');
+
+    for(let index = 0; index < songs.length; index++){
+        const row = rows[index];
+        const idInput  = row.querySelector('input[placeholder="网易云ID"]');
+        const urlInput = row.querySelector('input[placeholder="MP3 URL"]');
+
+        let span = row.querySelector('.song-valid, .song-invalid');
+        if(!span){
+            span = document.createElement('span');
+            row.appendChild(span);
+        }
+
+        span.textContent = '⏳ 检测中...';
+        span.className = '';
+
+        try {
+            const res = await fetch(ajaxurl, {
+                method:'POST',
+                body:new URLSearchParams({
+                    action:'musicbox_check_song',
+                    _ajax_nonce: musicboxNonce,
+                    id: idInput.value,
+                    url: urlInput.value
+                })
+            });
+            const json = await res.json();
+
+            if(json.valid){
+                span.textContent = '✅ 有效';
+                span.className = 'song-valid';
+                songs[index]._valid = true;
+            } else {
+                span.textContent = '❌ 无效';
+                span.className = 'song-invalid';
+                songs[index]._valid = false;
+            }
+        } catch(e) {
+            span.textContent = '❌ 检测失败';
+            span.className = 'song-invalid';
+            songs[index]._valid = false;
+        }
+    }
+
+    sync();
+    render();
+    alert('检测完成！');
+};
+
+// 删除所有失效歌曲
+document.getElementById('remove-invalid-songs').onclick = () => {
+    const before = songs.length;
+    songs = songs.filter(s => s._valid !== false);
+    const removed = before - songs.length;
+    sync();
+    render();
+    alert(`已删除 ${removed} 首失效歌曲`);
 };
 
 render();
 });
 </script>
+
+
+
 <?php }
+
+/* =========================
+ * Ajax：检测单首歌曲有效性
+ * ========================= */
+add_action('wp_ajax_musicbox_check_song', function() {
+    check_ajax_referer('musicbox_nonce');
+
+    if (!current_user_can('manage_options')) wp_die();
+
+    $id  = intval($_POST['id'] ?? 0);
+    $url = esc_url_raw($_POST['url'] ?? '');
+
+    if (!$id && !$url) wp_send_json_error('缺少参数');
+
+    // 优先用自定义 URL，否则构建网易云外链
+    $mp3_url = $url ?: "https://music.163.com/song/media/outer/url?id={$id}.mp3";
+
+    $res = wp_remote_head($mp3_url, [
+        'timeout' => 10,
+        'headers' => [
+            'User-Agent' => 'Mozilla/5.0',
+            'Referer'    => 'https://music.163.com/'
+        ],
+        'redirection' => 5,
+    ]);
+
+    if (is_wp_error($res)) {
+        wp_send_json(['valid' => false, 'msg' => '无法访问']);
+    }
+
+    $code  = wp_remote_retrieve_response_code($res);
+    $ctype = wp_remote_retrieve_header($res, 'content-type');
+
+    // 判断规则：200 + 音频类型
+    if ($code == 200 && strpos($ctype, 'audio') !== false) {
+        wp_send_json(['valid' => true, 'msg' => '有效']);
+    } else {
+        wp_send_json(['valid' => false, 'msg' => '无效']);
+    }
+});
+
 
 /* =========================
  * Ajax：单曲自动补全（原逻辑 + nonce）
@@ -597,7 +756,7 @@ setTimeout(() => {
         setTimeout(() => tip.remove(), 500);
         localStorage.setItem(tipKey, today); // 标记今天已显示
     }, 5000);
-}, 5000); // 整体延迟 5 秒显示
+}, 5000); // 整体延迟 3 秒显示
 </script>
 
 <?php });
