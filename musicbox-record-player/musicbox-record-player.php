@@ -2,9 +2,8 @@
 /**
  * Plugin Name: MusicBox 唱片播放器（网易云稳定终版）
  * Description: 单曲 / 歌单导入，JSON接口，缓存，防失败，随机或顺序播放
- * Version: 3.2.0
+ * Version: 3.3.1
  * Author: 码铃薯
- * Author URI: https://yourwebsite.com
  */
 
 if (!defined('ABSPATH')) exit;
@@ -38,6 +37,7 @@ add_action('admin_menu', function () {
 function musicbox_settings_page() {
     $songs = get_option('musicbox_song_list', '[]');
     $mode  = get_option('musicbox_play_mode', 'random');
+    $nonce = wp_create_nonce('musicbox_nonce');
 ?>
 <div class="wrap">
 <h2>🎵 MusicBox 唱片播放器</h2>
@@ -83,6 +83,7 @@ function musicbox_settings_page() {
 
 <script>
 var ajaxurl="<?php echo admin_url('admin-ajax.php'); ?>";
+var musicboxNonce="<?php echo esc_js($nonce); ?>";
 
 document.addEventListener('DOMContentLoaded',function(){
 let list=document.getElementById('musicbox-song-list');
@@ -113,8 +114,15 @@ inputs[2].oninput=e=>{s.cover=e.target.value;preview.innerHTML=s.cover?`<img src
 
 row.querySelector('.auto').onclick=()=>{
 if(!s.netease_id)return alert('请输入网易云ID');
-fetch(ajaxurl,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
-body:new URLSearchParams({action:'musicbox_fetch_single',id:s.netease_id})})
+fetch(ajaxurl,{
+method:'POST',
+headers:{'Content-Type':'application/x-www-form-urlencoded'},
+body:new URLSearchParams({
+action:'musicbox_fetch_single',
+id:s.netease_id,
+_ajax_nonce:musicboxNonce
+})
+})
 .then(r=>r.json()).then(d=>{
 if(!d||!d.url)return alert('获取失败');
 s.url=d.url;s.cover=d.cover;
@@ -134,8 +142,15 @@ document.getElementById('add-song').onclick=()=>{songs.push({});sync();render();
 document.getElementById('import-playlist').onclick=()=>{
 let id=document.getElementById('playlist-id').value;
 if(!id)return alert('请输入歌单ID');
-fetch(ajaxurl,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
-body:new URLSearchParams({action:'musicbox_fetch_playlist',id:id})})
+fetch(ajaxurl,{
+method:'POST',
+headers:{'Content-Type':'application/x-www-form-urlencoded'},
+body:new URLSearchParams({
+action:'musicbox_fetch_playlist',
+id:id,
+_ajax_nonce:musicboxNonce
+})
+})
 .then(r=>r.json()).then(list2=>{
 if(!Array.isArray(list2))return alert('导入失败');
 songs=list2;sync();render();
@@ -148,9 +163,10 @@ render();
 <?php }
 
 /* =========================
- * Ajax：单曲自动补全（JSON接口）
+ * Ajax：单曲自动补全（原逻辑 + nonce）
  * ========================= */
 add_action('wp_ajax_musicbox_fetch_single', function () {
+    check_ajax_referer('musicbox_nonce');
     if (!current_user_can('manage_options')) wp_die();
     $id = intval($_POST['id'] ?? 0);
     if (!$id) wp_die();
@@ -177,9 +193,10 @@ add_action('wp_ajax_musicbox_fetch_single', function () {
 });
 
 /* =========================
- * Ajax：歌单导入（JSON接口 + 缓存）
+ * Ajax：歌单导入（原逻辑 + nonce）
  * ========================= */
 add_action('wp_ajax_musicbox_fetch_playlist', function () {
+    check_ajax_referer('musicbox_nonce');
     if (!current_user_can('manage_options')) wp_die();
     $pid = intval($_POST['id'] ?? 0);
     if (!$pid) wp_die();
@@ -216,13 +233,21 @@ add_action('wp_ajax_musicbox_fetch_playlist', function () {
 });
 
 /* =========================
- * 前端播放器（封面修复 + 尺寸修复）
+ * 前端播放器（仅补全共享状态）
  * ========================= */
 add_action('wp_footer', function () {
     $songs = json_decode(get_option('musicbox_song_list','[]'), true);
     if (!$songs || !is_array($songs)) return;
     $mode = get_option('musicbox_play_mode','random');
 ?>
+<script>
+window.musicboxState = {
+    songs: <?php echo json_encode(array_values($songs)); ?>,
+    mode: "<?php echo esc_js($mode); ?>",
+    index: 0
+};
+</script>
+
 <style>
 #record-player {
     position: fixed;
@@ -270,113 +295,99 @@ add_action('wp_footer', function () {
 
 <audio id="musicbox-audio" preload="auto"></audio>
 
+<!-- ========================
+全局唯一状态源（核心修复点）
+======================== -->
+<script>
+window.musicboxState = {
+    songs: <?php echo json_encode(array_values($songs)); ?>,
+    mode: "<?php echo esc_js($mode); ?>",
+    index: ( "<?php echo esc_js($mode); ?>" === 'random'
+        ? Math.floor(Math.random() * <?php echo count($songs); ?>)
+        : 0
+    )
+};
+</script>
+
+<!-- ========================
+主播放器模块（原逻辑 + 状态修复）
+======================== -->
 <script>
 (() => {
-    const songs = <?php echo json_encode(array_values($songs)); ?> || [];
-    const mode  = "<?php echo esc_js($mode); ?>";
+    const state = window.musicboxState;
+    const songs = state.songs;
+    const mode  = state.mode;
     if (!songs.length) return;
 
     let hasUserInteracted = false;
-    let index = (mode === 'random') ? Math.floor(Math.random() * songs.length) : 0;
 
-    const audio = document.getElementById('musicbox-audio');
+    const audio  = document.getElementById('musicbox-audio');
     const record = document.getElementById('record');
     const cover  = document.querySelector('.record-cover');
 
-    // ------------------------
-    // 初始化封面和预加载第一首歌
-    // ------------------------
-    audio.src = songs[index].url;
-    cover.style.backgroundImage = `url('${songs[index].cover || ''}')`;
-
-    // ------------------------
-    // 加载歌曲（只设置 src，是否播放由点击控制）
-    // ------------------------
     function loadSong(i) {
         if (!songs[i]) return;
+        state.index = i;
         audio.src = songs[i].url;
         cover.style.backgroundImage = `url('${songs[i].cover || ''}')`;
     }
 
+    loadSong(state.index);
+
     function next() {
-        if (!songs.length) return;
         if (mode === 'random') {
-            index = Math.floor(Math.random() * songs.length);
+            state.index = Math.floor(Math.random() * songs.length);
         } else {
-            index = (index + 1) % songs.length;
+            state.index = (state.index + 1) % songs.length;
         }
-        loadSong(index);
-        if (hasUserInteracted) audio.play().catch(()=>{});
+        loadSong(state.index);
+        if (hasUserInteracted) {
+            audio.play().catch(()=>{});
+        }
     }
 
-    // ------------------------
-    // 点击唱片播放 / 暂停
-    // ------------------------
     record.addEventListener('click', () => {
         hasUserInteracted = true;
-
-        if (!audio.src) loadSong(index);
-
         if (audio.paused) {
-            audio.play().then(() => record.classList.add('rotating')).catch(()=>{});
+            audio.play().then(() => {
+                record.classList.add('rotating');
+            }).catch(()=>{});
         } else {
             audio.pause();
             record.classList.remove('rotating');
         }
     });
 
-    // ------------------------
-    // 音频结束 / 播放错误事件
-    // ------------------------
     audio.addEventListener('ended', next);
     audio.addEventListener('error', next);
 })();
 </script>
 
-<!--========
-独立功能模块
-============-->
-
-<!--鼠标悬浮调节音量独立模块-->
+<!-- ========================
+音量 / 悬浮提示 / 双击切歌模块（原样保留 + 状态修复）
+======================== -->
 <script>
 (() => {
-    const audio = document.getElementById('musicbox-audio');
+    const audio  = document.getElementById('musicbox-audio');
     const record = document.getElementById('record');
-    if (!audio || !record) return;
+    const state  = window.musicboxState;
+    if (!audio || !record || !state.songs.length) return;
+
+    const songs = state.songs;
+    const mode  = state.mode;
 
     let isHovering = false;
 
-    // 当前播放索引
-    let index = 0;
-    const songs = window.musicboxSongs || []; // 确保全局有歌曲列表
-    const mode = window.musicboxMode || 'random'; // 播放模式：random/order
-
-    // ------------------------
-    // 播放函数
-    // ------------------------
-    function loadSong(i, autoplay = true) {
-        if (!songs[i]) return;
-        audio.src = songs[i].url;
-        if (autoplay) {
-            audio.play().catch(() => {
-                nextSong();
-            });
-        }
-    }
-
     function nextSong() {
-        if (!songs.length) return;
         if (mode === 'random') {
-            index = Math.floor(Math.random() * songs.length);
+            state.index = Math.floor(Math.random() * songs.length);
         } else {
-            index = (index + 1) % songs.length;
+            state.index = (state.index + 1) % songs.length;
         }
-        loadSong(index);
+        audio.src = songs[state.index].url;
+        audio.play().catch(()=>{});
     }
 
-    // ------------------------
-    // 创建精致萌系提示弹窗
-    // ------------------------
     const tip = document.createElement('div');
     tip.style.position = 'fixed';
     tip.style.padding = '3px 8px';
@@ -393,9 +404,6 @@ add_action('wp_footer', function () {
     tip.style.boxShadow = '0 1px 4px rgba(0,0,0,0.2)';
     document.body.appendChild(tip);
 
-    // ------------------------
-    // 创建小音量进度条
-    // ------------------------
     const volBar = document.createElement('div');
     volBar.style.display = 'inline-block';
     volBar.style.verticalAlign = 'middle';
@@ -407,27 +415,16 @@ add_action('wp_footer', function () {
     volBar.style.overflow = 'hidden';
 
     const volFill = document.createElement('div');
-    volFill.style.width = `${audio.volume * 100}%`;
     volFill.style.height = '100%';
     volFill.style.background = '#ff69b4';
     volFill.style.borderRadius = '2px';
     volBar.appendChild(volFill);
     tip.appendChild(volBar);
 
-    let baseTip = '(*≧ω≦) 滚轮调音量喵~';
-
     function showTip(extra = '') {
-        tip.textContent = `${baseTip}${extra ? ' - ' + extra + '% 喵～' : ''}`;
+        tip.textContent = `(*≧ω≦)双击切歌+滚轮调音量 喵~${extra ? ' - ' + extra + '% 喵～' : ''}`;
         tip.appendChild(volBar);
         tip.style.opacity = '1';
-        tip.style.transform = 'translateY(-50%) scale(1.05)';
-
-        tip.animate([
-            { transform: 'translateY(-50%) scale(1.05)' },
-            { transform: 'translateY(-55%) scale(1.1)' },
-            { transform: 'translateY(-50%) scale(1.05)' }
-        ], { duration: 250, easing: 'ease-out' });
-
         volFill.style.width = `${audio.volume * 100}%`;
 
         clearTimeout(tip._hideTimeout);
@@ -438,9 +435,6 @@ add_action('wp_footer', function () {
         createNote();
     }
 
-    // ------------------------
-    // 悬浮提示
-    // ------------------------
     record.addEventListener('mouseenter', () => {
         isHovering = true;
         const rect = record.getBoundingClientRect();
@@ -454,26 +448,17 @@ add_action('wp_footer', function () {
         tip.style.opacity = '0';
     });
 
-    // ------------------------
-    // 滚轮调音量
-    // ------------------------
     record.addEventListener('wheel', e => {
         e.preventDefault();
         audio.volume = Math.min(1, Math.max(0, audio.volume + (e.deltaY < 0 ? 0.05 : -0.05)));
         showTip(Math.round(audio.volume * 100));
     });
 
-    // ------------------------
-    // 双击切歌
-    // ------------------------
     record.addEventListener('dblclick', () => {
         nextSong();
         showTip('切歌成功！');
     });
 
-    // ------------------------
-    // 小音符动画
-    // ------------------------
     function createNote() {
         const note = document.createElement('div');
         note.textContent = '🎵';
@@ -487,8 +472,8 @@ add_action('wp_footer', function () {
         document.body.appendChild(note);
 
         note.animate([
-            { transform: 'translateY(0) scale(1)', opacity: 1 },
-            { transform: 'translateY(-18px) scale(1.1)', opacity: 0 }
+            { transform: 'translateY(0)', opacity: 1 },
+            { transform: 'translateY(-18px)', opacity: 0 }
         ], { duration: 500, easing: 'ease-out' });
 
         setTimeout(() => note.remove(), 500);
@@ -496,6 +481,130 @@ add_action('wp_footer', function () {
 })();
 </script>
 
+<!--播放器拖拽支持-->
+<script>
+(() => {
+    const player = document.getElementById('record-player');
+    if (!player) return;
+
+    let isDragging = false;
+    let startX = 0, startY = 0;
+    let originX = 0, originY = 0;
+    let moved = false;
+
+    const DRAG_THRESHOLD = 5; // 像素阈值，防误触
+
+    player.addEventListener('mousedown', e => {
+        startX = e.clientX;
+        startY = e.clientY;
+
+        const rect = player.getBoundingClientRect();
+        originX = rect.left;
+        originY = rect.top;
+
+        moved = false;
+        isDragging = true;
+
+        document.body.style.userSelect = 'none';
+    });
+
+    document.addEventListener('mousemove', e => {
+        if (!isDragging) return;
+
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+
+        if (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD) {
+            moved = true;
+        }
+
+        if (!moved) return;
+
+        player.style.left = originX + dx + 'px';
+        player.style.top  = originY + dy + 'px';
+        player.style.bottom = 'auto';
+        player.style.right  = 'auto';
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (!isDragging) return;
+        isDragging = false;
+        document.body.style.userSelect = '';
+    });
+
+    // 阻止拖拽时触发点击
+    player.addEventListener('click', e => {
+        if (moved) {
+            e.stopPropagation();
+            e.preventDefault();
+            moved = false;
+        }
+    });
+})();
+</script>
+
+<!--首次打开弹窗小提示-->
+<script>
+(() => {
+    const audio  = document.getElementById('musicbox-audio');
+    const record = document.getElementById('record');
+    const state  = window.musicboxState;
+
+    if (!audio || !record || !state || !state.songs.length) return;
+    if (window.location.pathname !== '/') return;
+
+    const tipKey = 'musicbox_home_tip_shown';
+    const today  = new Date().toDateString();
+    if (localStorage.getItem(tipKey) === today) return; // 今天已显示过
+
+    // 创建提示气泡
+    const tip = document.createElement('div');
+    tip.style.position = 'fixed';
+    tip.style.background = 'linear-gradient(135deg,#ff9ec0,#ffb6c1)';
+    tip.style.color = '#fff';
+    tip.style.padding = '4px 10px';
+    tip.style.borderRadius = '12px';
+    tip.style.fontSize = '12px';
+    tip.style.fontWeight = 'bold';
+    tip.style.textShadow = '0 1px 1px rgba(0,0,0,0.3)';
+    tip.style.pointerEvents = 'auto';
+    tip.style.whiteSpace = 'nowrap';
+    tip.style.opacity = '0';
+    tip.style.transition = 'opacity 0.3s, transform 0.2s';
+    tip.style.zIndex = '99999';
+    tip.textContent = '点击这里播放音乐 🎵';
+    document.body.appendChild(tip);
+
+    // 放在播放器右上方
+    const rect = record.getBoundingClientRect();
+    tip.style.left = rect.right + 8 + 'px';
+    tip.style.top  = rect.top - 4 + 'px';
+
+    // 显示动画
+    requestAnimationFrame(() => {
+        tip.style.opacity = '1';
+        tip.style.transform = 'translateY(-5px)';
+    });
+
+    // 点击播放
+    tip.addEventListener('click', () => {
+        if (audio.paused) {
+            audio.play().then(() => {
+                record.classList.add('rotating');
+            }).catch(()=>{});
+        }
+        tip.style.opacity = '0';
+        setTimeout(() => tip.remove(), 500);
+        localStorage.setItem(tipKey, today); // 标记今天已显示
+    });
+
+    // 自动消失
+    setTimeout(() => {
+        tip.style.opacity = '0';
+        setTimeout(() => tip.remove(), 500);
+        localStorage.setItem(tipKey, today); // 标记今天已显示
+    }, 3000);
+})();
+</script>
 
 <?php });
-
