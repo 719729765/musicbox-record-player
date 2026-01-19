@@ -4,7 +4,7 @@
  * Description: 单曲 / 歌单导入，JSON接口，缓存，防失败，随机或顺序播放
  * Version: 3.3.1
  * Author: 码铃薯
- */
+ * Author URI: https://www.tudoucode.cn
 
 if (!defined('ABSPATH')) exit;
 
