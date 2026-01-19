@@ -1,8 +1,8 @@
 <?php
 /**
- * Plugin Name: MusicBox 唱片播放器（网易云稳定终版）
- * Description: 单曲 / 歌单导入，JSON接口，缓存，防失败，随机或顺序播放
- * Version: 3.3.1
+ * Plugin Name: MusicBox 唱片播放器
+ * Description: 单曲 / 歌单导入，JSON接口，缓存，防失败，随机或顺序播放，修复加载速度
+ * Version: 3.3.2
  * Author: 码铃薯
  * Author URI: https://www.tudoucode.cn
 
@@ -240,13 +240,6 @@ add_action('wp_footer', function () {
     if (!$songs || !is_array($songs)) return;
     $mode = get_option('musicbox_play_mode','random');
 ?>
-<script>
-window.musicboxState = {
-    songs: <?php echo json_encode(array_values($songs)); ?>,
-    mode: "<?php echo esc_js($mode); ?>",
-    index: 0
-};
-</script>
 
 <style>
 #record-player {
@@ -293,7 +286,7 @@ window.musicboxState = {
     </div>
 </div>
 
-<audio id="musicbox-audio" preload="auto"></audio>
+<audio id="musicbox-audio" preload="none"></audio>
 
 <!-- ========================
 全局唯一状态源（核心修复点）
@@ -439,7 +432,7 @@ window.musicboxState = {
         isHovering = true;
         const rect = record.getBoundingClientRect();
         tip.style.left = `${rect.right + 8}px`;
-        tip.style.top = `${rect.top + rect.height / 2}px`;
+        tip.style.top = `${rect.top + rect.height / 3}px`;  //弹窗整体上调阀
         showTip();
     });
 
@@ -545,7 +538,7 @@ window.musicboxState = {
 
 <!--首次打开弹窗小提示-->
 <script>
-(() => {
+setTimeout(() => {
     const audio  = document.getElementById('musicbox-audio');
     const record = document.getElementById('record');
     const state  = window.musicboxState;
@@ -603,8 +596,8 @@ window.musicboxState = {
         tip.style.opacity = '0';
         setTimeout(() => tip.remove(), 500);
         localStorage.setItem(tipKey, today); // 标记今天已显示
-    }, 3000);
-})();
+    }, 5000);
+}, 5000); // 整体延迟 5 秒显示
 </script>
 
 <?php });
