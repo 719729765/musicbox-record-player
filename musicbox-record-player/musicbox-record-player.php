@@ -2,7 +2,7 @@
 /**
  * Plugin Name: MusicBox 唱片播放器
  * Description: 单曲 / 歌单导入，JSON接口，缓存，防失败，随机或顺序播放，修复加载速度
- * Version: 3.3.3
+ * Version: 3.3.4
  * Author: 码铃薯
  * Author URI: https://www.tudoucode.cn
 
@@ -538,6 +538,11 @@ window.musicboxState = {
         }
         audio.src = songs[state.index].url;
         audio.play().catch(()=>{});
+
+    // ⭐⭐⭐ 修复前端切歌封面不切问题
+    document.querySelector('.record-cover').style.backgroundImage =
+        `url('${songs[state.index].cover || ''}')`;
+        
     }
 
     const tip = document.createElement('div');
