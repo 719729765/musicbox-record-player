@@ -21,9 +21,7 @@
 > 这不仅是播放器，也是一个小小互动乐趣，绝对比普通音量条萌多啦~  
 
 ---
-
-![Uploading image.png…]()
-
+<img width="800" height="533" alt="image" src="[https://github.com/user-attachments/assets/ab7feeaa-fd96-45b0-9bcb-afa6340acb9b](https://github.com/719729765/musicbox-record-player/blob/main/2026-01-19_232228.png)" />
 
 ## 开发者语
 
