@@ -5,8 +5,6 @@
 <img width="800" height="533" alt="image" src="https://github.com/user-attachments/assets/ab7feeaa-fd96-45b0-9bcb-afa6340acb9b" />
 
 
-
-
 ## 在线体验
 
 想直观感受插件效果？访问 **[在线体验地址](https://sky.sfcrom.com)** 就对啦！  
@@ -21,7 +19,7 @@
 > 这不仅是播放器，也是一个小小互动乐趣，绝对比普通音量条萌多啦~  
 
 ---
-<img width="800" height="533" alt="image" src="[https://github.com/user-attachments/assets/ab7feeaa-fd96-45b0-9bcb-afa6340acb9b](https://github.com/719729765/musicbox-record-player/blob/main/2026-01-19_232228.png)" />
+<img width="1006" height="1878" alt="image" src="https://github.com/user-attachments/assets/573915c5-eae3-4b82-89c6-e04d2f62f382" />
 
 ## 开发者语
 
