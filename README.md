@@ -22,7 +22,8 @@
 
 ---
 
-<img width="829" height="818" alt="image" src="https://github.com/user-attachments/assets/220665e2-a63a-4450-8003-354069148f02" />
+![Uploading image.png…]()
+
 
 ## 开发者语
 
