@@ -2,7 +2,7 @@
 /**
  * Plugin Name: MusicBox 唱片播放器
  * Description: 单曲 / 歌单导入，JSON接口，缓存，防失败，随机或顺序播放，修复加载速度
- * Version: 3.3.4
+ * Version: 3.3.5
  * Author: 码铃薯
  * Author URI: https://www.tudoucode.cn
  */
@@ -478,13 +478,24 @@ window.musicboxState = {
     const record = document.getElementById('record');
     const cover  = document.querySelector('.record-cover');
 
-    function loadSong(i) {
-        if (!songs[i]) return;
-        state.index = i;
-        audio.src = songs[i].url;
-        cover.style.backgroundImage = `url('${songs[i].cover || ''}')`;
-    }
+function loadSong(i) {
+    if (!songs[i]) return;
+    state.index = i;
+    audio.src = songs[i].url;
 
+    // 懒加载封面：先显示空，加载完图片再显示
+    cover.style.backgroundImage = '';  // 清空旧封面
+    if (songs[i].cover) {
+        const img = new Image();
+        img.onload = () => {
+            cover.style.backgroundImage = `url('${songs[i].cover}')`;
+        }
+        img.src = songs[i].cover;
+    }
+}
+    //主动暴露歌源信息
+    window.musicboxLoadSong = loadSong;
+    
     loadSong(state.index);
 
     function next() {
@@ -537,13 +548,8 @@ window.musicboxState = {
         } else {
             state.index = (state.index + 1) % songs.length;
         }
-        audio.src = songs[state.index].url;
+        window.musicboxLoadSong(state.index);
         audio.play().catch(()=>{});
-
-    // ⭐⭐⭐ 修复前端切歌封面不切问题
-    document.querySelector('.record-cover').style.backgroundImage =
-        `url('${songs[state.index].cover || ''}')`;
-        
     }
 
     const tip = document.createElement('div');
