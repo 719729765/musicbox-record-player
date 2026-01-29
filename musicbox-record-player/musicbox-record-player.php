@@ -2,7 +2,7 @@
 /**
  * Plugin Name: MusicBox 唱片播放器
  * Description: 单曲 / 歌单导入，JSON接口，缓存，防失败，随机或顺序播放，修复加载速度
- * Version: 3.3.6
+ * Version: 3.3.5
  * Author: 码铃薯
  * Author URI: https://www.tudoucode.cn
  */
@@ -287,7 +287,6 @@ render();
 
 // 封面一键本地化
 const coverLog = document.getElementById('cover-log');
-
 function logCover(msg){
     coverLog.innerHTML += msg + "<br>";
     coverLog.scrollTop = coverLog.scrollHeight;
@@ -309,17 +308,19 @@ document.getElementById('download-covers').addEventListener('click', () => {
         if(res.success){
             logCover(`✅ 完成！共处理 ${res.data.total} 首歌曲，下载 ${res.data.downloaded} 张封面。`);
 
-            // —— 新增两行 —— //
-            songs = res.data.songs || songs;          // 更新前端 songs 状态
-            sync();                                   // 同步隐藏字段
-            render();                                 // 刷新列表显示封面
+            // —— 核心修改 —— //
+            // 清空原 songs 数组并推入新数据，保证 render 用到的是最新本地封面
+            songs.length = 0;
+            res.data.songs.forEach(s=>songs.push(s));
+
+            sync();   // 同步到隐藏字段
+            render(); // 刷新列表，输入框显示本地封面链接
         } else {
             logCover(`❌ 失败：${res.data}`);
         }
     })
     .catch(e=>logCover('❌ Ajax 错误：'+e));
 });
-
 
 </script>
 
@@ -368,9 +369,15 @@ add_action('wp_ajax_musicbox_download_covers', function() {
         $song['cover'] = plugins_url('covers/'.$filename, __FILE__);
     }
 
+    // 更新数据库
     update_option('musicbox_song_list', json_encode($songs));
 
-    wp_send_json_success(['total'=>count($songs),'downloaded'=>$downloaded]);
+    // ✅ 返回完整 songs 数据给前端
+    wp_send_json_success([
+        'total'     => count($songs),
+        'downloaded'=> $downloaded,
+        'songs'     => $songs
+    ]);
 });
 
 
