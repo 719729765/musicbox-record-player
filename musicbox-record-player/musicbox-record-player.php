@@ -2,7 +2,7 @@
 /**
  * Plugin Name: MusicBox 唱片播放器
  * Description: 单曲 / 歌单导入，JSON接口，缓存，防失败，随机或顺序播放，修复加载速度
- * Version: 3.3.5
+ * Version: 3.3.6
  * Author: 码铃薯
  * Author URI: https://www.tudoucode.cn
  */
@@ -77,6 +77,15 @@ function musicbox_settings_page() {
 🧹 删除所有失效歌曲
 </button>
 
+<hr>
+<h3>🎨 封面本地化（插件目录）</h3>
+<p>
+    <button type="button" class="button button-primary" id="download-covers">🚀 一键下载封面</button>
+</p>
+<p style="font-size:12px;color:#999;margin-top:4px;">
+    ⚠️ 请确保插件目录下 <code>covers/</code> 文件夹可写，否则封面无法保存
+</p>
+<div id="cover-log" style="margin-top:12px;font-family:monospace;"></div>
 
 </form>
 </div>
@@ -275,11 +284,95 @@ document.getElementById('remove-invalid-songs').onclick = () => {
 
 render();
 });
+
+// 封面一键本地化
+const coverLog = document.getElementById('cover-log');
+
+function logCover(msg){
+    coverLog.innerHTML += msg + "<br>";
+    coverLog.scrollTop = coverLog.scrollHeight;
+}
+
+document.getElementById('download-covers').addEventListener('click', () => {
+    if(!confirm('确认开始下载封面到插件目录吗？可能需要几秒钟~')) return;
+    logCover('开始处理歌单...');
+
+    fetch(ajaxurl, {
+        method:'POST',
+        body:new URLSearchParams({
+            action:'musicbox_download_covers',
+            _ajax_nonce: musicboxNonce
+        })
+    })
+    .then(r=>r.json())
+    .then(res=>{
+        if(res.success){
+            logCover(`✅ 完成！共处理 ${res.data.total} 首歌曲，下载 ${res.data.downloaded} 张封面。`);
+
+            // —— 新增两行 —— //
+            songs = res.data.songs || songs;          // 更新前端 songs 状态
+            sync();                                   // 同步隐藏字段
+            render();                                 // 刷新列表显示封面
+        } else {
+            logCover(`❌ 失败：${res.data}`);
+        }
+    })
+    .catch(e=>logCover('❌ Ajax 错误：'+e));
+});
+
+
 </script>
 
 
 
 <?php }
+
+/* =========================
+ * 封面一键本地化
+ * ========================= */
+add_action('wp_ajax_musicbox_download_covers', function() {
+    check_ajax_referer('musicbox_nonce');
+    if (!current_user_can('manage_options')) wp_send_json_error('权限不足');
+
+    $songs = get_option('musicbox_song_list','[]');
+    $songs = json_decode($songs,true);
+    if(!$songs || !is_array($songs)) wp_send_json_error('歌单为空');
+
+    // 插件根目录路径
+    $plugin_dir = plugin_dir_path(__FILE__);
+    $cover_dir  = $plugin_dir . 'covers/';
+    if(!file_exists($cover_dir)) mkdir($cover_dir, 0755, true);
+
+    $downloaded = 0;
+
+    foreach($songs as &$song){
+        if(empty($song['cover'])) continue;
+
+        $url = $song['cover'];
+        $ext = pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION);
+        $ext = in_array(strtolower($ext), ['jpg','jpeg','png','gif']) ? $ext : 'jpg';
+        $filename = 'cover_'.$song['netease_id'].'.'.$ext;
+        $filepath = $cover_dir . $filename;
+
+        if(!file_exists($filepath)){
+            $res = wp_remote_get($url, ['timeout'=>15]);
+            if(!is_wp_error($res) && wp_remote_retrieve_response_code($res) == 200){
+                file_put_contents($filepath, wp_remote_retrieve_body($res));
+                $downloaded++;
+            }
+        } else {
+            $downloaded++;
+        }
+
+        // 替换封面 URL 为本地插件目录路径
+        $song['cover'] = plugins_url('covers/'.$filename, __FILE__);
+    }
+
+    update_option('musicbox_song_list', json_encode($songs));
+
+    wp_send_json_success(['total'=>count($songs),'downloaded'=>$downloaded]);
+});
+
 
 /* =========================
  * Ajax：检测单首歌曲有效性
