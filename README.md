@@ -168,6 +168,10 @@
 - **官方网站**：[www.tudoucode.cn](https://www.tudoucode.cn)
 
 ---
+## 插件演示地址（）
+- 插件演示地址1：[www.youzwy.com](https://www.youzwy.com)
+- 插件演示地址2：[game.tachgal.com](https://game.tachgal.com)
+
 
 ## 贡献指南
 
