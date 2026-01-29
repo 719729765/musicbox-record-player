@@ -2,7 +2,7 @@
 /**
  * Plugin Name: MusicBox 唱片播放器
  * Description: 单曲 / 歌单导入，JSON接口，缓存，防失败，随机或顺序播放，修复加载速度
- * Version: 3.3.5
+ * Version: 3.3.6
  * Author: 码铃薯
  * Author URI: https://www.tudoucode.cn
  */
@@ -83,7 +83,7 @@ function musicbox_settings_page() {
     <button type="button" class="button button-primary" id="download-covers">🚀 一键下载封面</button>
 </p>
 <p style="font-size:12px;color:#999;margin-top:4px;">
-    ⚠️ 请确保插件目录下 <code>covers/</code> 文件夹可写，否则封面无法保存
+    ⚠️ 请确保插件目录下 <code>covers/</code> 文件夹可写，否则封面无法保存（远程封面很大，导致加载缓慢，本地化后压缩后，极大提高加载速度）
 </p>
 <div id="cover-log" style="margin-top:12px;font-family:monospace;"></div>
 
