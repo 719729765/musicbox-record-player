@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -18,332 +17,103 @@
   --muted: #aaa4c1;
   --border: rgba(192, 164, 255, .17);
 }
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
+* { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  min-height: 100vh;
-  color: var(--text);
-  background:
-    radial-gradient(ellipse at 15% 0%, rgba(131, 72, 204, .22), transparent 42%),
-    radial-gradient(ellipse at 90% 25%, rgba(255, 91, 170, .12), transparent 38%),
-    var(--bg);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
-    "Microsoft YaHei", sans-serif;
+  min-height: 100vh; color: var(--text);
+  background: radial-gradient(ellipse at 15% 0%, rgba(131, 72, 204, .22), transparent 42%),
+              radial-gradient(ellipse at 90% 25%, rgba(255, 91, 170, .12), transparent 38%), var(--bg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
   line-height: 1.7;
 }
+a { color: inherit; text-decoration: none; }
+.container { width: min(1100px, calc(100% - 36px)); margin: 0 auto; }
+header { padding: 24px 0; border-bottom: 1px solid var(--border); background: rgba(16, 13, 28, .55); }
+.navbar { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+.logo { font-size: 19px; font-weight: 800; letter-spacing: .5px; }
+.logo span { color: var(--pink); }
+.top-link { padding: 8px 15px; border: 1px solid var(--border); border-radius: 20px; color: #dcd4f5; font-size: 13px; transition: .25s; }
+.top-link:hover { border-color: var(--pink); color: var(--pink); }
+.hero { padding: 75px 0 35px; text-align: center; }
+.tag { display: inline-block; padding: 5px 14px; margin-bottom: 19px; border: 1px solid rgba(255, 114, 182, .3); border-radius: 30px; background: rgba(255, 114, 182, .08); color: #ff9ccc; font-size: 12px; letter-spacing: 2px; }
+.hero h1 { font-size: clamp(30px, 5vw, 48px); line-height: 1.3; letter-spacing: 1px; }
+.hero h1 span { background: linear-gradient(100deg, #ff8ec8, #b6a0ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hero p { max-width: 620px; margin: 20px auto 0; color: var(--muted); font-size: 14px; }
+.stats { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+.stat { padding: 7px 15px; border: 1px solid var(--border); border-radius: 10px; background: rgba(255, 255, 255, .025); color: #c6bddf; font-size: 12px; }
+.stat strong { color: var(--pink); margin-right: 5px; }
 
-a {
-  color: inherit;
-  text-decoration: none;
+/* 收藏引导：醒目按钮 + 浏览器收藏快捷提示 */
+.bookmark-panel {
+  position: relative; width: min(820px, calc(100% - 36px)); margin: 0 auto 46px;
+  padding: 25px 26px 23px; text-align: center; overflow: hidden;
+  border: 1px solid rgba(255, 114, 182, .42); border-radius: 22px;
+  background: linear-gradient(125deg, rgba(255, 114, 182, .13), rgba(165, 139, 255, .14) 70%, rgba(30, 25, 49, .8));
+  box-shadow: 0 16px 45px rgba(0, 0, 0, .2), 0 0 32px rgba(255, 114, 182, .08);
 }
-
-.container {
-  width: min(1100px, calc(100% - 36px));
-  margin: 0 auto;
+.bookmark-panel::before {
+  content: ""; position: absolute; inset: 0 auto 0 0; width: 4px;
+  background: linear-gradient(var(--pink), var(--purple));
 }
-
-header {
-  padding: 24px 0;
-  border-bottom: 1px solid var(--border);
-  background: rgba(16, 13, 28, .55);
+.bookmark-kicker { color: #ffacd4; font-size: 12px; letter-spacing: 2px; font-weight: 800; }
+.bookmark-panel h2 { margin: 5px 0 8px; font-size: clamp(21px, 3vw, 28px); }
+.bookmark-panel > p { max-width: 650px; margin: 0 auto; color: #c8bfdc; font-size: 14px; }
+.bookmark-benefits { display: flex; justify-content: center; flex-wrap: wrap; gap: 9px 18px; margin: 15px 0 19px; color: #e6dff7; font-size: 12px; }
+.bookmark-benefits span { white-space: nowrap; }
+.bookmark-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  min-height: 54px; padding: 13px 30px; border: 0; border-radius: 999px;
+  background: linear-gradient(100deg, #ff72b6, #a58bff); color: #1b1028;
+  box-shadow: 0 7px 25px rgba(255, 114, 182, .28); font: inherit; font-size: 16px; font-weight: 900;
+  cursor: pointer; transition: transform .2s, box-shadow .2s;
 }
-
-.navbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-}
-
-.logo {
-  font-size: 19px;
-  font-weight: 800;
-  letter-spacing: .5px;
-}
-
-.logo span {
-  color: var(--pink);
-}
-
-.top-link {
-  padding: 8px 15px;
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  color: #dcd4f5;
-  font-size: 13px;
-  transition: .25s;
-}
-
-.top-link:hover {
-  border-color: var(--pink);
-  color: var(--pink);
-}
-
-.hero {
-  padding: 75px 0 52px;
-  text-align: center;
-}
-
-.tag {
-  display: inline-block;
-  padding: 5px 14px;
-  margin-bottom: 19px;
-  border: 1px solid rgba(255, 114, 182, .3);
-  border-radius: 30px;
-  background: rgba(255, 114, 182, .08);
-  color: #ff9ccc;
-  font-size: 12px;
-  letter-spacing: 2px;
-}
-
-.hero h1 {
-  font-size: clamp(30px, 5vw, 48px);
-  line-height: 1.3;
-  letter-spacing: 1px;
-}
-
-.hero h1 span {
-  background: linear-gradient(100deg, #ff8ec8, #b6a0ff);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-.hero p {
-  max-width: 620px;
-  margin: 20px auto 0;
-  color: var(--muted);
-  font-size: 14px;
-}
-
-.stats {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 28px;
-}
-
-.stat {
-  padding: 7px 15px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, .025);
-  color: #c6bddf;
-  font-size: 12px;
-}
-
-.stat strong {
-  color: var(--pink);
-  margin-right: 5px;
-}
-
-main {
-  padding-bottom: 65px;
-}
-
-.category {
-  margin-bottom: 42px;
-}
-
-.section-title {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  margin-bottom: 18px;
-  font-size: 19px;
-  font-weight: 750;
-}
-
-.section-title .icon {
-  display: grid;
-  width: 35px;
-  height: 35px;
-  place-items: center;
-  border: 1px solid var(--border);
-  border-radius: 11px;
-  background: rgba(165, 139, 255, .1);
-  font-size: 17px;
-}
-
-.section-title small {
-  margin-left: auto;
-  color: #827b9e;
-  font-size: 11px;
-  font-weight: 400;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 15px;
-}
-
-.site-card {
-  position: relative;
-  display: flex;
-  min-width: 0;
-  min-height: 145px;
-  flex-direction: column;
-  padding: 20px;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  background: var(--card);
-  transition: transform .25s, border-color .25s, box-shadow .25s;
-}
-
-.site-card::before {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 42px;
-  height: 2px;
-  background: linear-gradient(90deg, var(--pink), var(--purple));
-  content: "";
-  opacity: .8;
-}
-
-.site-card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(255, 114, 182, .55);
-  box-shadow: 0 12px 35px rgba(0, 0, 0, .2);
-}
-
-.card-top {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.site-icon {
-  display: grid;
-  width: 43px;
-  height: 43px;
-  flex-shrink: 0;
-  place-items: center;
-  border: 1px solid rgba(165, 139, 255, .22);
-  border-radius: 13px;
-  background: linear-gradient(135deg,
-    rgba(165, 139, 255, .18),
-    rgba(255, 114, 182, .12));
-  font-size: 21px;
-}
-
-.site-name {
-  min-width: 0;
-  font-size: 15px;
-  font-weight: 700;
-  overflow-wrap: anywhere;
-}
-
-.site-url {
-  margin-top: 2px;
-  color: #948baa;
-  font-size: 11px;
-  overflow-wrap: anywhere;
-}
-
-.card-bottom {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-top: auto;
-  padding-top: 17px;
-  color: #b6abcF;
-  font-size: 12px;
-}
-
-.visit {
-  color: #ff9dce;
-  white-space: nowrap;
-  transition: .2s;
-}
-
-.site-card:hover .visit {
-  color: #c6b5ff;
-}
-
-footer {
-  padding: 27px 0 32px;
-  border-top: 1px solid var(--border);
-  color: #89819f;
-  text-align: center;
-  font-size: 12px;
-}
-
-footer p + p {
-  margin-top: 7px;
-}
-
-footer a {
-  color: #d3a2ff;
-}
-
+.bookmark-btn:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 10px 30px rgba(255, 114, 182, .4); }
+.bookmark-btn:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
+.bookmark-note { margin-top: 12px !important; color: #aaa0c3 !important; font-size: 12px !important; }
+.bookmark-toast { min-height: 22px; margin-top: 8px; color: #ffc3e0; font-size: 13px; }
+main { padding-bottom: 65px; }
+.category { margin-bottom: 42px; }
+.section-title { display: flex; align-items: center; gap: 11px; margin-bottom: 18px; font-size: 19px; font-weight: 750; }
+.section-title .icon { display: grid; width: 35px; height: 35px; place-items: center; border: 1px solid var(--border); border-radius: 11px; background: rgba(165, 139, 255, .1); font-size: 17px; }
+.section-title small { margin-left: auto; color: #827b9e; font-size: 11px; font-weight: 400; }
+.grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; }
+.site-card { position: relative; display: flex; min-width: 0; min-height: 145px; flex-direction: column; padding: 20px; overflow: hidden; border: 1px solid var(--border); border-radius: 16px; background: var(--card); transition: transform .25s, border-color .25s, box-shadow .25s; }
+.site-card::before { position: absolute; top: 0; left: 0; width: 42px; height: 2px; background: linear-gradient(90deg, var(--pink), var(--purple)); content: ""; opacity: .8; }
+.site-card:hover { transform: translateY(-4px); border-color: rgba(255, 114, 182, .55); box-shadow: 0 12px 35px rgba(0, 0, 0, .2); }
+.card-top { display: flex; align-items: center; gap: 12px; }
+.site-icon { display: grid; width: 43px; height: 43px; flex-shrink: 0; place-items: center; border: 1px solid rgba(165, 139, 255, .22); border-radius: 13px; background: linear-gradient(135deg, rgba(165, 139, 255, .18), rgba(255, 114, 182, .12)); font-size: 21px; }
+.site-name { min-width: 0; font-size: 15px; font-weight: 700; overflow-wrap: anywhere; }
+.site-url { margin-top: 2px; color: #948baa; font-size: 11px; overflow-wrap: anywhere; }
+.card-bottom { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: 17px; color: #b6abcF; font-size: 12px; }
+.visit { color: #ff9dce; white-space: nowrap; transition: .2s; }
+.site-card:hover .visit { color: #c6b5ff; }
+footer { padding: 27px 0 32px; border-top: 1px solid var(--border); color: #89819f; text-align: center; font-size: 12px; }
+footer p + p { margin-top: 7px; }
+footer a { color: #d3a2ff; }
 @media (max-width: 760px) {
-  .grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 11px;
-  }
-
-  .site-card {
-    min-height: 142px;
-    padding: 15px;
-  }
-
-  .hero {
-    padding: 55px 0 40px;
-  }
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; }
+  .site-card { min-height: 142px; padding: 15px; }
+  .hero { padding: 55px 0 30px; }
+  .bookmark-panel { padding: 22px 17px; }
+  .bookmark-btn { width: 100%; max-width: 360px; }
 }
-
 @media (max-width: 440px) {
-  .container {
-    width: calc(100% - 24px);
-  }
-
-  .grid {
-    grid-template-columns: 1fr;
-  }
-
-  .site-card {
-    min-height: 115px;
-  }
-
-  .hero h1 {
-    font-size: 29px;
-  }
-
-  .section-title {
-    font-size: 17px;
-  }
+  .container { width: calc(100% - 24px); }
+  .grid { grid-template-columns: 1fr; }
+  .site-card { min-height: 115px; }
+  .hero h1 { font-size: 29px; }
+  .section-title { font-size: 17px; }
+  .bookmark-panel { width: calc(100% - 24px); }
 }
-
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    scroll-behavior: auto !important;
-    transition: none !important;
-  }
+  *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
 }
 </style>
 </head>
-
 <body>
 <header>
   <div class="container navbar">
-    <a class="logo" href="./" aria-label="ACG 次元导航首页">
-      ✦ ACG <span>NAVIGATION</span>
-    </a>
-    <a class="top-link"
-       href="https://github.com/719729765/musicbox-record-player"
-       target="_blank" rel="noopener noreferrer">
-      GitHub 项目 ↗
-    </a>
+    <a class="logo" href="./" aria-label="ACG 次元导航首页">✦ ACG <span>NAVIGATION</span></a>
+    <a class="top-link" href="https://github.com/719729765/musicbox-record-player" target="_blank" rel="noopener noreferrer">GitHub 项目 ↗</a>
   </div>
 </header>
 
@@ -351,10 +121,7 @@ footer a {
   <div class="container">
     <div class="tag">WELCOME TO ANOTHER DIMENSION</div>
     <h1>发现属于你的 <span>次元世界</span></h1>
-    <p>
-      从 Galgame 到电玩，从游戏资讯到实用工具。
-      收集值得探索的站点，让每一次点击都有新的发现。
-    </p>
+    <p>从 Galgame 到电玩，从游戏资讯到实用工具。收集值得探索的站点，让每一次点击都有新的发现。</p>
     <div class="stats">
       <div class="stat"><strong>09</strong>个收录站点</div>
       <div class="stat"><strong>03</strong>个分类</div>
@@ -363,182 +130,80 @@ footer a {
   </div>
 </section>
 
+<!-- 浏览器原生收藏通常需要用户手动确认，网页无法静默替用户收藏 -->
+<section class="bookmark-panel" aria-labelledby="bookmark-title">
+  <div class="bookmark-kicker">✦ 给未来的自己留个入口</div>
+  <h2 id="bookmark-title">喜欢这个导航？先收藏起来！</h2>
+  <p>把本站加入浏览器收藏夹，下次想找 Galgame、电玩或实用工具时，一键就能回来，不用重新搜索，也不怕忘记网址。</p>
+  <div class="bookmark-benefits">
+    <span>✓ 下次快速打开</span>
+    <span>✓ 少搜一次网址</span>
+    <span>✓ 方便随时回访</span>
+  </div>
+  <button class="bookmark-btn" id="bookmarkButton" type="button">
+    <span aria-hidden="true">⭐</span> 请按 Ctrl + D 收藏本站，方便下次访问
+  </button>
+  <p class="bookmark-note">点击后会尝试调用浏览器收藏功能；若浏览器不支持，请按 <strong>Ctrl + D</strong>（Mac：<strong>⌘ + D</strong>）手动收藏。</p>
+  <div class="bookmark-toast" id="bookmarkToast" role="status" aria-live="polite"></div>
+</section>
+
 <main class="container">
-
   <section class="category">
-    <h2 class="section-title">
-      <span class="icon">🌸</span>
-      Galgame 与 ACG
-      <small>ACG WORLD</small>
-    </h2>
-
+    <h2 class="section-title"><span class="icon">🌸</span>Galgame 与 ACG<small>ACG WORLD</small></h2>
     <div class="grid">
-
-      <a class="site-card" href="https://www.alacggal.vip"
-         target="_blank" rel="noopener noreferrer">
-        <div class="card-top">
-          <div class="site-icon">🌷</div>
-          <div>
-            <div class="site-name">梦萝 ACGG</div>
-            <div class="site-url">alacggal.vip</div>
-          </div>
-        </div>
-        <div class="card-bottom">
-          <span>ACG 相关站点</span><span class="visit">访问网站 ↗</span>
-        </div>
-      </a>
-
-      <a class="site-card" href="https://www.kaogal.com"
-         target="_blank" rel="noopener noreferrer">
-        <div class="card-top">
-          <div class="site-icon">🎀</div>
-          <div>
-            <div class="site-name">KaoGal</div>
-            <div class="site-url">kaogal.com</div>
-          </div>
-        </div>
-        <div class="card-bottom">
-          <span>Galgame 相关站点</span><span class="visit">访问网站 ↗</span>
-        </div>
-      </a>
-
-      <a class="site-card" href="https://www.505001.xyz"
-         target="_blank" rel="noopener noreferrer">
-        <div class="card-top">
-          <div class="site-icon">🌙</div>
-          <div>
-            <div class="site-name">忧郁的弟弟家</div>
-            <div class="site-url">505001.xyz</div>
-          </div>
-        </div>
-        <div class="card-bottom">
-          <span>ACG 相关站点</span><span class="visit">访问网站 ↗</span>
-        </div>
-      </a>
-
-      <a class="site-card" href="https://www.707001.xyz"
-         target="_blank" rel="noopener noreferrer">
-        <div class="card-top">
-          <div class="site-icon">🏡</div>
-          <div>
-            <div class="site-name">绅士的天堂村</div>
-            <div class="site-url">707001.xyz</div>
-          </div>
-        </div>
-        <div class="card-bottom">
-          <span>ACG 相关站点</span><span class="visit">访问网站 ↗</span>
-        </div>
-      </a>
-
-      <a class="site-card" href="https://www.909001.xyz"
-         target="_blank" rel="noopener noreferrer">
-        <div class="card-top">
-          <div class="site-icon">🌸</div>
-          <div>
-            <div class="site-name">落樱档案馆</div>
-            <div class="site-url">909001.xyz</div>
-          </div>
-        </div>
-        <div class="card-bottom">
-          <span>ACG 相关站点</span><span class="visit">访问网站 ↗</span>
-        </div>
-      </a>
-
+      <a class="site-card" href="https://www.alacggal.vip" target="_blank" rel="noopener noreferrer"><div class="card-top"><div class="site-icon">🌷</div><div><div class="site-name">梦萝 ACGG</div><div class="site-url">alacggal.vip</div></div></div><div class="card-bottom"><span>ACG 相关站点</span><span class="visit">访问网站 ↗</span></div></a>
+      <a class="site-card" href="https://www.kaogal.com" target="_blank" rel="noopener noreferrer"><div class="card-top"><div class="site-icon">🎀</div><div><div class="site-name">KaoGal</div><div class="site-url">kaogal.com</div></div></div><div class="card-bottom"><span>Galgame 相关站点</span><span class="visit">访问网站 ↗</span></div></a>
+      <a class="site-card" href="https://www.505001.xyz" target="_blank" rel="noopener noreferrer"><div class="card-top"><div class="site-icon">🌙</div><div><div class="site-name">忧郁的弟弟家</div><div class="site-url">505001.xyz</div></div></div><div class="card-bottom"><span>ACG 相关站点</span><span class="visit">访问网站 ↗</span></div></a>
+      <a class="site-card" href="https://www.707001.xyz" target="_blank" rel="noopener noreferrer"><div class="card-top"><div class="site-icon">🏡</div><div><div class="site-name">绅士的天堂村</div><div class="site-url">707001.xyz</div></div></div><div class="card-bottom"><span>ACG 相关站点</span><span class="visit">访问网站 ↗</span></div></a>
+      <a class="site-card" href="https://www.909001.xyz" target="_blank" rel="noopener noreferrer"><div class="card-top"><div class="site-icon">🌸</div><div><div class="site-name">落樱档案馆</div><div class="site-url">909001.xyz</div></div></div><div class="card-bottom"><span>ACG 相关站点</span><span class="visit">访问网站 ↗</span></div></a>
     </div>
   </section>
-
   <section class="category">
-    <h2 class="section-title">
-      <span class="icon">🎮</span>
-      游戏与电玩
-      <small>GAMING</small>
-    </h2>
-
+    <h2 class="section-title"><span class="icon">🎮</span>游戏与电玩<small>GAMING</small></h2>
     <div class="grid">
-
-      <a class="site-card" href="https://sky.sfcrom.com"
-         target="_blank" rel="noopener noreferrer">
-        <div class="card-top">
-          <div class="site-icon">🕹️</div>
-          <div>
-            <div class="site-name">SKY电玩人</div>
-            <div class="site-url">sky.sfcrom.com</div>
-          </div>
-        </div>
-        <div class="card-bottom">
-          <span>电玩相关站点</span><span class="visit">访问网站 ↗</span>
-        </div>
-      </a>
-
-      <a class="site-card" href="https://www.808002.xyz"
-         target="_blank" rel="noopener noreferrer">
-        <div class="card-top">
-          <div class="site-icon">🎲</div>
-          <div>
-            <div class="site-name">游之未央</div>
-            <div class="site-url">808002.xyz</div>
-          </div>
-        </div>
-        <div class="card-bottom">
-          <span>游戏相关站点</span><span class="visit">访问网站 ↗</span>
-        </div>
-      </a>
-
+      <a class="site-card" href="https://sky.sfcrom.com" target="_blank" rel="noopener noreferrer"><div class="card-top"><div class="site-icon">🕹️</div><div><div class="site-name">SKY电玩人</div><div class="site-url">sky.sfcrom.com</div></div></div><div class="card-bottom"><span>电玩相关站点</span><span class="visit">访问网站 ↗</span></div></a>
+      <a class="site-card" href="https://www.808002.xyz" target="_blank" rel="noopener noreferrer"><div class="card-top"><div class="site-icon">🎲</div><div><div class="site-name">游之未央</div><div class="site-url">808002.xyz</div></div></div><div class="card-bottom"><span>游戏相关站点</span><span class="visit">访问网站 ↗</span></div></a>
     </div>
   </section>
-
   <section class="category">
-    <h2 class="section-title">
-      <span class="icon">🛠️</span>
-      其他相关站点
-      <small>MORE DISCOVERY</small>
-    </h2>
-
+    <h2 class="section-title"><span class="icon">🛠️</span>其他相关站点<small>MORE DISCOVERY</small></h2>
     <div class="grid">
-
-      <a class="site-card" href="https://www.202588.cn"
-         target="_blank" rel="noopener noreferrer">
-        <div class="card-top">
-          <div class="site-icon">📚</div>
-          <div>
-            <div class="site-name">试卷壹号</div>
-            <div class="site-url">202588.cn</div>
-          </div>
-        </div>
-        <div class="card-bottom">
-          <span>相关服务站点</span><span class="visit">访问网站 ↗</span>
-        </div>
-      </a>
-
-      <a class="site-card" href="https://www.tudoucode.cn"
-         target="_blank" rel="noopener noreferrer">
-        <div class="card-top">
-          <div class="site-icon">💻</div>
-          <div>
-            <div class="site-name">码铃薯</div>
-            <div class="site-url">tudoucode.cn</div>
-          </div>
-        </div>
-        <div class="card-bottom">
-          <span>技术与工具相关站点</span><span class="visit">访问网站 ↗</span>
-        </div>
-      </a>
-
+      <a class="site-card" href="https://www.202588.cn" target="_blank" rel="noopener noreferrer"><div class="card-top"><div class="site-icon">📚</div><div><div class="site-name">试卷壹号</div><div class="site-url">202588.cn</div></div></div><div class="card-bottom"><span>相关服务站点</span><span class="visit">访问网站 ↗</span></div></a>
+      <a class="site-card" href="https://www.tudoucode.cn" target="_blank" rel="noopener noreferrer"><div class="card-top"><div class="site-icon">💻</div><div><div class="site-name">码铃薯</div><div class="site-url">tudoucode.cn</div></div></div><div class="card-bottom"><span>技术与工具相关站点</span><span class="visit">访问网站 ↗</span></div></a>
     </div>
   </section>
-
 </main>
 
 <footer>
   <div class="container">
     <p>✦ ACG 次元导航 · 发现更多好游戏 ✦</p>
     <p>本站提供第三方站点导航，各站点内容及版权归其各自所有者所有。</p>
-    <p>
-      <a href="https://github.com/719729765/musicbox-record-player"
-         target="_blank" rel="noopener noreferrer">GitHub 开源项目</a>
-    </p>
+    <p><a href="https://github.com/719729765/musicbox-record-player" target="_blank" rel="noopener noreferrer">GitHub 开源项目</a></p>
   </div>
 </footer>
 
+<script>
+(() => {
+  const button = document.getElementById("bookmarkButton");
+  const toast = document.getElementById("bookmarkToast");
+
+  button.addEventListener("click", async () => {
+    const isMac = /Mac|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const shortcut = isMac ? "⌘ + D" : "Ctrl + D";
+
+    // 浏览器出于安全原因通常不允许网页自动写入收藏夹；
+    // 部分旧版浏览器支持 window.sidebar.addPanel，仅在存在时尝试。
+    try {
+      if (window.sidebar && typeof window.sidebar.addPanel === "function") {
+        window.sidebar.addPanel(document.title, window.location.href, "");
+        toast.textContent = "已尝试打开浏览器收藏功能；如未出现收藏窗口，请使用 " + shortcut + "。";
+        return;
+      }
+    } catch (_) {}
+
+    toast.textContent = "浏览器通常不允许网页直接完成收藏，请按 " + shortcut + "，再确认添加到收藏夹 ⭐";
+  });
+})();
+</script>
 </body>
 </html>
