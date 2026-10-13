@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://719729765.github.io/musicbox-record-player/nav/sitemap.xml
