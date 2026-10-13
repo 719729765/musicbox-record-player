@@ -188,21 +188,35 @@
 - **官方网站**：[www.tudoucode.cn](https://www.tudoucode.cn)
 
 ---
-## 🔗 插件演示
+## 🔗 插件演示网站矩阵地址，随便一个都能看到插件效果！
 
-- 演示地址 1：[插件实时演示（完整功能）](https://www.youzwy.com)
-- 演示地址 2：[轻量示例站（基础播放）](https://game.tachgal.com)
+整理一些 ACG 游戏、Galgame、电玩资讯及相关工具网站，方便玩家发现更多游戏内容与实用资源。
 
+## 🌸 Galgame 与 ACG
 
-## 贡献指南
+| 网站名称 | 网站地址 |
+|---|---|
+| 梦萝 ACGG | https://www.alacggal.vip |
+| KaoGal | https://www.kaogal.com |
+| 忧郁的弟弟家 | https://www.505001.xyz |
+| 绅士的天堂村 | https://www.707001.xyz |
+| 落樱档案馆 | https://www.909001.xyz |
 
-如果你想参与开发或提交问题：
+## 🎮 游戏与电玩
 
-1. Fork 本仓库  
-2. 创建新分支 `feature/xxx`  
-3. 提交代码并发起 Pull Request  
+| 网站名称 | 网站地址 |
+|---|---|
+| SKY电玩人 | https://sky.sfcrom.com |
+| 游之未央 | https://www.808002.xyz |
 
-欢迎提出优化建议或分享使用体验！  
+## 🛠️ 其他相关站点
+
+| 网站名称 | 网站地址 |
+|---|---|
+| 试卷壹号 | https://www.202588.cn |
+| 码铃薯 | https://www.tudoucode.cn |
+
+---
 
 ---
 
